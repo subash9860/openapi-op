@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.7 — 2026-08-17
+
+- ci: publish with NPM_TOKEN
+
 ## 0.2.6 — 2026-08-17
 
 - ci: publish via npm trusted publishing (OIDC)
