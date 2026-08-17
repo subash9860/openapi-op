@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.3 — 2026-08-17
+
+- ci: publish with NPM_TOKEN
+
 ## 0.2.2 — 2026-08-17
 
 - fix: github ci
