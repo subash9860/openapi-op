@@ -21,8 +21,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-          # No registry-url on purpose: it writes an .npmrc with an empty
-          # _authToken, which blocks the OIDC exchange.
+          registry-url: https://registry.npmjs.org
       - run: npm ci
       - run: npm test
 
@@ -41,7 +40,9 @@ jobs:
           npm version "$bump" -m "chore: release v%s"
           git push --follow-tags
 
-      - run: npm -v && npm publish
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: gh release create "v$(node -p 'require("./package.json").version')" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
