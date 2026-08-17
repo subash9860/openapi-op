@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.5 — 2026-08-17
+
+- ci: rebase onto main before bumping so reruns don't collide
+
 ## 0.2.4 — 2026-08-17
 
 - ci: make release rerun idempotent
