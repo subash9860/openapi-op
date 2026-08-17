@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.9 — 2026-08-17
+
+- ci: publish via trusted publisher (OIDC)
+
 ## 0.2.8 — 2026-08-17
 
 - no user-facing changes
