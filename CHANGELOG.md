@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.11 — 2026-08-17
+
+- no user-facing changes
+
 ## 0.2.10 — 2026-08-17
 
 - no user-facing changes
