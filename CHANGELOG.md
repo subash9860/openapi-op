@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.15 — 2026-08-17
+
+- ci: drop OIDC diagnostics
+
 ## 0.2.14 — 2026-08-17
 
 - no user-facing changes
