@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.16 — 2026-08-17
+
+- ci: tolerate GitHub API blips on release notes
+
 ## 0.2.15 — 2026-08-17
 
 - ci: drop OIDC diagnostics
