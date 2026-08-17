@@ -41,11 +41,7 @@ jobs:
           npm version "$bump" -m "chore: release v%s"
           git push --follow-tags
 
-      - run: |
-          echo "oidc_url=${ACTIONS_ID_TOKEN_REQUEST_URL:+present}"
-          echo "npmrc=${NPM_CONFIG_USERCONFIG:-none}"
-          npm config get userconfig
-      - run: npm publish --loglevel verbose
+      - run: npm publish
       - run: gh release create "v$(node -p 'require("./package.json").version')" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
