@@ -29,7 +29,7 @@
     "./generator": "./generator.mjs"
   },
   "bin": {
-    "openapi-op": "./bin/openapi-op.mjs"
+    "openapi-op": "bin/openapi-op.mjs"
   },
   "files": [
     "dist",
