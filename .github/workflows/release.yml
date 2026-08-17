@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write        # push the release commit + tag, create the Release
-      id-token: write        # npm trusted publishing (OIDC)
+      id-token: write        # provenance attestation on publish
     steps:
       - uses: actions/checkout@v5
         with:
@@ -21,9 +21,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-          # No registry-url: it writes an .npmrc with an empty _authToken,
-          # which stops npm from doing the OIDC exchange (E404 on publish).
-      - run: npm i -g npm@latest   # trusted publishing needs npm >= 11.5.1
+          registry-url: https://registry.npmjs.org
       - run: npm ci
       - run: npm test
 
@@ -38,6 +36,8 @@ jobs:
           git push --follow-tags
 
       - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: gh release create "v$(node -p 'require("./package.json").version')" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
