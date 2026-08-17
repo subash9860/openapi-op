@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.4 — 2026-08-17
+
+- ci: make release rerun idempotent
+
 ## 0.2.3 — 2026-08-17
 
 - ci: publish with NPM_TOKEN
