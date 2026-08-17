@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write        # push the release commit + tag, create the Release
-      id-token: write        # provenance attestation on publish
+      id-token: write        # npm trusted publishing (OIDC), exempt from 2FA
     steps:
       - uses: actions/checkout@v5
         with:
@@ -21,7 +21,8 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-          registry-url: https://registry.npmjs.org
+          # No registry-url on purpose: it writes an .npmrc with an empty
+          # _authToken, which blocks the OIDC exchange.
       - run: npm ci
       - run: npm test
 
@@ -40,9 +41,7 @@ jobs:
           npm version "$bump" -m "chore: release v%s"
           git push --follow-tags
 
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: npm -v && npm publish
       - run: gh release create "v$(node -p 'require("./package.json").version')" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
