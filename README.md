@@ -136,6 +136,10 @@ Generated names come from the spec, so they are only as good as it is:
 `api(path, init)` is the untyped escape hatch for anything the spec does not
 describe.
 
+Writing the spec on the backend? See
+[docs/spec-authoring.md](docs/spec-authoring.md) — the Swagger/OpenAPI rules
+that decide what the generated names and types come out as.
+
 ## Escape hatch
 
 ```ts

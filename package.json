@@ -4,6 +4,9 @@
   "description": "Typed API client generated from an OpenAPI spec — one op() per operation, no runtime validation, no codegen'd fetch soup.",
   "keywords": ["openapi", "swagger", "typescript", "codegen", "fetch", "api-client", "fastapi"],
   "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/subash9860/openapi-op.git" },
+  "homepage": "https://github.com/subash9860/openapi-op#readme",
+  "bugs": "https://github.com/subash9860/openapi-op/issues",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -17,11 +20,13 @@
   "bin": {
     "openapi-op": "./bin/openapi-op.mjs"
   },
-  "files": ["dist", "bin", "generator.mjs", "README.md"],
+  "files": ["dist", "bin", "generator.mjs", "README.md", "CHANGELOG.md", "docs"],
   "engines": { "node": ">=18" },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "node --test test/*.test.mjs",
+    "release": "npm version patch && git push --follow-tags",
+    "version": "node scripts/changelog.mjs && git add CHANGELOG.md",
     "prepublishOnly": "npm run build && npm test"
   },
   "dependencies": {

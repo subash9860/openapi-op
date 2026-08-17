@@ -1,0 +1,42 @@
+name: release
+
+on:
+  push:
+    branches: [main]
+
+# Pushes made with GITHUB_TOKEN do not re-trigger workflows, so the release
+# commit this job creates cannot loop back into another run.
+concurrency: release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # push the release commit + tag, create the Release
+      id-token: write        # npm trusted publishing (OIDC)
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0     # changelog needs history + tags
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: npm i -g npm@latest   # trusted publishing needs npm >= 11.5.1
+      - run: npm ci
+      - run: npm test
+
+      - name: Bump version + changelog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          last=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          log=$(git log ${last:+$last..}HEAD --no-merges --pretty=format:%s%n%b)
+          if grep -qE '^feat(\(.+\))?!?:|BREAKING CHANGE' <<<"$log"; then bump=minor; else bump=patch; fi
+          npm version "$bump" -m "chore: release v%s"
+          git push --follow-tags
+
+      - run: npm publish
+      - run: gh release create "v$(node -p 'require("./package.json").version')" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
