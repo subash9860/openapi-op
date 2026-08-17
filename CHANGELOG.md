@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2 — 2026-08-17
+
+- fix: github ci
+
 ## 0.2.1 — 2026-08-17
 
 - ci: pin actions v5, fix bin path
