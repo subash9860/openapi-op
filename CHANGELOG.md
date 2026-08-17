@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.13 — 2026-08-17
+
+- ci: verbose publish for OIDC diagnosis
+
 ## 0.2.12 — 2026-08-17
 
 - ci: debug OIDC env
