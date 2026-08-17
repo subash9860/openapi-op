@@ -21,7 +21,8 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-          registry-url: https://registry.npmjs.org
+          # No registry-url: it writes an .npmrc with an empty _authToken,
+          # which blocks the OIDC exchange used by trusted publishing.
       - run: npm ci
       - run: npm test
 
@@ -41,8 +42,6 @@ jobs:
           git push --follow-tags
 
       - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: gh release create "v$(node -p 'require("./package.json").version')" --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
