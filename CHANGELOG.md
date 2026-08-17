@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.6 — 2026-08-17
+
+- ci: publish via npm trusted publishing (OIDC)
+
 ## 0.2.5 — 2026-08-17
 
 - ci: rebase onto main before bumping so reruns don't collide
