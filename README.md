@@ -24,6 +24,7 @@ Writes, every run:
 | --- | --- |
 | `lib/schema.ts` | `openapi-typescript` output, verbatim |
 | `lib/endpoints.ts` | the callable client, grouped by the first path segment |
+| `lib/operations.ts` | `LoginRequest` / `LoginResponse`, one pair per operation |
 | `docs/api.md` | every path, verb, request and response (`--no-docs` to skip) |
 
 Written **once**, then yours: `lib/api.ts` (where the base URL and the auth
@@ -122,6 +123,43 @@ type Out  = Res<"/api/v1/auth/login", "post">;   // Token
 type Q    = Query<"/api/v1/members", "get">;     // { limit?, offset? }
 type Role = Schema<"RoleOut">;
 ```
+
+Where a wrapper has to restate a route's types — a Server Action most of all —
+name the route's own type out of the generated `operations.ts` instead:
+
+```ts
+import type { RegisterRequest, RegisterResponse } from "@/lib/operations";
+
+export async function signupAction(
+  body: RegisterRequest,
+): Promise<Result<RegisterResponse>> {
+  return run(() => auth.register({ body }));
+}
+```
+
+The names come from the spec's `summary`, the same string that becomes the
+method name — `Login` is `LoginRequest` / `LoginResponse`, `Change Role` is
+`ChangeRoleRequest`. A route with no body has no `…Request`, and a collision
+keeps its verb (`PostPingResponse`). Every operation gets a pair, including
+the ones outside `--prefix` that you reach with `api()`.
+
+Naming the schema by hand is the thing to avoid: `Schema<"Register">` is a
+second, independent claim about the same route, and structural typing lets a
+wrong one through — it annotates a `Credentials` body without complaint,
+because the extra field is optional and TypeScript sees a subtype. A generated
+name cannot drift; a rename in the spec is a compile error rather than a 422.
+
+### Off the endpoint
+
+`ReqOf` / `ResOf` / `ArgsOf` read the same types off an endpoint function, for
+code that is generic over one and has no single name to import:
+
+```ts
+const wrap = <F extends typeof auth.login>(f: F) => (body: ReqOf<F>) => f({ body });
+```
+
+`Schema<"…">` is still the right name for a plain data shape a component holds
+(`Schema<"CourseOut">[]`) — there is no endpoint there to read from.
 
 ## Conventions it assumes
 

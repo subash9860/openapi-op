@@ -4,7 +4,7 @@
 //
 // The `paths` below is hand-written to match what openapi-typescript emits,
 // down to the `?: never` filler — that filler is what the helpers read.
-import type { ApiMethod, Args, Call } from "../src/types";
+import type { ApiMethod, Args, Call, Res, ArgsOf, ReqOf, ResOf } from "../src/types";
 
 interface paths {
   "/none": {
@@ -49,7 +49,7 @@ interface paths {
 declare function call<P extends keyof paths, M extends ApiMethod<paths, P>>(
   p: P,
   m: M,
-): (...args: Call<paths, P, M>) => void;
+): (...args: Call<paths, P, M>) => Promise<Res<paths, P, M>>;
 
 const none = call("/none", "get");
 const body = call("/body", "post");
@@ -91,4 +91,16 @@ search({});
 // The tooltip shape: `Args` resolves to an object, not back to its own name.
 const shape: Args<paths, "/body", "post"> = { body: { name: "n" } };
 
-export { none, body, upload, list, search, shape };
+// Read off the endpoint instead of off a schema name. `ReqOf` has to survive
+// the three body shapes — required, optional, absent — because a signature
+// written against the wrong one is exactly what these replace.
+const req: ReqOf<typeof body> = { name: "n" };
+const reqOptional: ReqOf<typeof upload> = undefined;
+// @ts-expect-error `/none` has no body to name
+const reqAbsent: ReqOf<typeof none> = {};
+const res: ResOf<typeof body> = "a string";
+// @ts-expect-error the route resolves to a string
+const resWrong: ResOf<typeof body> = 1;
+const argsOf: ArgsOf<typeof search> = { query: { q: "x" } };
+
+export { none, body, upload, list, search, shape, req, reqOptional, reqAbsent, res, resWrong, argsOf };

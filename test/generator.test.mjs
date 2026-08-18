@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { renderEndpoints, endpoints } from "../generator.mjs";
+import { renderEndpoints, renderOperations, endpoints } from "../generator.mjs";
 
 const spec = {
   paths: {
@@ -41,4 +41,25 @@ test("a Paginated response gets a rows-only sibling", () => {
   assert.match(src, /const membersList = op\("\/api\/v1\/members", "get"\);/);
   assert.match(src, /listItems: async \(\.\.\.args/);
   assert.match(src, /import \{ op \} from "\.\/api";/);
+});
+
+test("a named request/response pair per operation, off the summary", () => {
+  const src = renderOperations(spec);
+  assert.match(src, /export type ListMembersResponse = Res<paths, "\/api\/v1\/members", "get">;/);
+  assert.match(src, /export type ChangeRoleResponse = Res<paths, "\/api\/v1\/members\/\{user_id\}", "patch">;/);
+  // No body on the route, so there is no request type to name.
+  assert.doesNotMatch(src, /ListMembersRequest/);
+  // Outside `--prefix` too: `api()` reaches those, and they still have types.
+  assert.match(src, /export type HealthzResponse/);
+});
+
+test("two summaries that collide are kept apart by the verb", () => {
+  const src = renderOperations({
+    paths: {
+      "/a": { get: { summary: "Ping", responses: { 200: {} } } },
+      "/b": { post: { summary: "Ping", responses: { 200: {} } } },
+    },
+  });
+  assert.match(src, /export type PingResponse = Res<paths, "\/a", "get">;/);
+  assert.match(src, /export type PostPingResponse = Res<paths, "\/b", "post">;/);
 });

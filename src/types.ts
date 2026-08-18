@@ -98,3 +98,25 @@ export type Call<Paths, P extends keyof Paths, M extends ApiMethod<Paths, P>> =
   Record<string, never> extends Args<Paths, P, M>
     ? [args?: Args<Paths, P, M>]
     : [args: Args<Paths, P, M>];
+
+// Everything above is keyed by a spec path. These are keyed by the endpoint
+// itself — `ReqOf<typeof auth.login>` where a hand-written signature would say
+// `Schema<"Credentials">`.
+//
+// The difference is what happens when the two disagree. A schema name is a
+// second, independent claim about the same route, and structural typing lets a
+// wrong one through: `Schema<"Register">` annotates a `Credentials` body
+// without complaint, because the extra field is optional and TypeScript sees a
+// subtype. Read off the function, the annotation *is* the route — the call
+// site already imports it, a spec rename lands as an error here, and there is
+// nothing left to keep in sync by hand.
+type Endpoint = (...args: never[]) => Promise<unknown>;
+
+/** Everything the call takes — `params`, `body` and `query`, as the route has them. */
+export type ArgsOf<F extends Endpoint> = NonNullable<Parameters<F>[0]>;
+
+/** Its body alone — `never` for a route that takes none. */
+export type ReqOf<F extends Endpoint> = ArgsOf<F>[Extract<"body", keyof ArgsOf<F>>];
+
+/** What it resolves to — the response, already awaited, and `void` on a 204. */
+export type ResOf<F extends Endpoint> = Awaited<ReturnType<F>>;

@@ -37,7 +37,12 @@ jobs:
           git reset --hard origin/main
           last=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           log=$(git log ${last:+$last..}HEAD --no-merges --pretty=format:%s%n%b)
-          if grep -qE '^feat(\(.+\))?!?:|BREAKING CHANGE' <<<"$log"; then bump=minor; else bump=patch; fi
+          # `!` or a BREAKING CHANGE footer is a major, a plain feat a minor,
+          # anything else a patch. Folding breaking into minor is the 0.x
+          # convention, and it left no reachable path to 1.0 at all.
+          if grep -qE '^[a-z]+(\(.+\))?!:|^BREAKING CHANGE' <<<"$log"; then bump=major
+          elif grep -qE '^feat(\(.+\))?:' <<<"$log"; then bump=minor
+          else bump=patch; fi
           npm version "$bump" -m "chore: release v%s"
           git push --follow-tags
 

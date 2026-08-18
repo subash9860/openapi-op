@@ -1,9 +1,10 @@
 #!/usr/bin/env node
-// One command, one spec, three files:
+// One command, one spec, four files:
 //
-//   <out>/schema.ts     — openapi-typescript, verbatim
-//   <out>/endpoints.ts  — the callable client
-//   <docs>              — the readable map (skip with --no-docs)
+//   <out>/schema.ts      — openapi-typescript, verbatim
+//   <out>/endpoints.ts   — the callable client
+//   <out>/operations.ts  — a named request/response type per operation
+//   <docs>               — the readable map (skip with --no-docs)
 //
 // plus <out>/api.ts and <out>/api-types.ts scaffolded on first run only —
 // those two are yours to edit, the three above are not.
@@ -15,7 +16,13 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import openapiTS, { astToString } from "openapi-typescript";
-import { renderDocs, renderEndpoints, endpoints, operations } from "../generator.mjs";
+import {
+  renderDocs,
+  renderEndpoints,
+  renderOperations,
+  endpoints,
+  operations,
+} from "../generator.mjs";
 
 const argv = process.argv.slice(2);
 const flag = (name, fallback) => {
@@ -53,6 +60,7 @@ await writeFile(
   astToString(await openapiTS(isUrl ? new URL(spec) : doc)),
 );
 await writeFile(path.join(out, "endpoints.ts"), renderEndpoints(doc, { prefix, client }));
+await writeFile(path.join(out, "operations.ts"), renderOperations(doc));
 if (docs) {
   await mkdir(path.dirname(docs), { recursive: true });
   await writeFile(docs, renderDocs(doc));
@@ -113,5 +121,6 @@ export type Params<P extends ApiPath, M extends ApiMethod<P>> = t.Params<paths, 
 
 console.log(`${out}/schema.ts — ${operations(doc).length} operations`);
 console.log(`${out}/endpoints.ts — ${[...endpoints(doc, { prefix }).keys()].join(", ")}`);
+console.log(`${out}/operations.ts — named request/response types`);
 if (docs) console.log(docs);
 if (written.length) console.log(`scaffolded ${written.join(", ")} (edit freely)`);
