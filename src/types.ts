@@ -56,15 +56,44 @@ export type Query<Paths, P extends keyof Paths, M extends ApiMethod<Paths, P>> =
 export type Params<Paths, P extends keyof Paths, M extends ApiMethod<Paths, P>> =
   Op<Paths, P, M> extends { parameters: { path?: infer T } } ? NonNullable<T> : never;
 
+// The `?` the spec put on the key, carried to the call site: a body or a query
+// the route makes optional may be left out, one it requires may not.
+//
+// Read as key-requiredness and not as `undefined extends …` because `infer`
+// against an optional property drops the `undefined` that would have said so.
+type OptionalBody<Paths, P extends keyof Paths, M extends ApiMethod<Paths, P>> =
+  Op<Paths, P, M> extends { requestBody: unknown } ? false : true;
+
+type OptionalQuery<Paths, P extends keyof Paths, M extends ApiMethod<Paths, P>> =
+  Op<Paths, P, M> extends { parameters: { query: unknown } } ? false : true;
+
 // Present only when the route has one — a route with no body takes no `body`
 // argument, and a route with `{user_id}` cannot be called without it.
-type Slot<K extends string, T> = [T] extends [never] ? unknown : { [k in K]: T };
+type Slot<K extends string, T, Opt extends boolean = false> = [T] extends [never]
+  ? unknown
+  : Opt extends true
+    ? { [k in K]?: T }
+    : { [k in K]: T };
 
-export type Args<Paths, P extends keyof Paths, M extends ApiMethod<Paths, P>> =
+// An intersection prints back as its own alias — a tooltip on a call shows
+// `Args<paths, "/api/v1/auth/login", "post">`, a name and not a shape. Mapping
+// it once resolves it, so the editor lists the fields the route actually wants.
+//
+// Three absent slots intersect to `unknown`, which would accept any object at
+// all — `Record<string, never>` is the same "nothing to pass" with the door
+// shut, so `me({ body })` is still a typo and not a silently dropped argument.
+type Simplify<T> = unknown extends T
+  ? Record<string, never>
+  : { [K in keyof T]: T[K] } & {};
+
+export type Args<Paths, P extends keyof Paths, M extends ApiMethod<Paths, P>> = Simplify<
   Slot<"params", Params<Paths, P, M>> &
-  Slot<"body", Req<Paths, P, M>> & { query?: Query<Paths, P, M> };
+    Slot<"body", Req<Paths, P, M>, OptionalBody<Paths, P, M>> &
+    Slot<"query", Query<Paths, P, M>, OptionalQuery<Paths, P, M>>
+>;
 
-// `{}` satisfies a call with nothing required, so `auth.me()` stays argument-free.
+// A route with nothing required takes the argument optionally, so `auth.me()`
+// stays argument-free.
 export type Call<Paths, P extends keyof Paths, M extends ApiMethod<Paths, P>> =
   Record<string, never> extends Args<Paths, P, M>
     ? [args?: Args<Paths, P, M>]

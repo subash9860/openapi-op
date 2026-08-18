@@ -48,8 +48,11 @@ const rows = await members.listItems();              // paginated -> .items sibl
 await members.changeRole({ params: { user_id }, body: { role: "admin" } });
 ```
 
-`params` is required when the path has `{...}`, `body` when the operation takes
-one, and neither appears in the signature when the route has neither.
+`params` is required when the path has `{...}`, `body` and `query` when the
+spec marks them required (a `requestBody?:` or an all-optional query stays
+optional), and a key the route has no use for is absent from the signature
+entirely. The argument type resolves to an object literal rather than to its
+own alias, so hovering a call lists the fields it wants.
 
 ## Configure
 
