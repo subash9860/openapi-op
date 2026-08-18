@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1 — 2026-08-18
+
+- chore: update docs
+
 ## 1.0.0 — 2026-08-18
 
 - feat!: generate a named request/response type per operation
