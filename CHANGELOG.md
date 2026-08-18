@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0 — 2026-08-18
+
+- feat!: generate a named request/response type per operation
+
 ## 0.2.17 — 2026-08-18
 
 - fix: call args show their shape and honor optional body/query
