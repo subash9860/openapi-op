@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { renderEndpoints, renderOperations, endpoints } from "../generator.mjs";
+import { renderEndpoints, renderOperations, endpoints, modelTypes } from "../generator.mjs";
 
 const spec = {
   paths: {
@@ -62,4 +62,17 @@ test("two summaries that collide are kept apart by the verb", () => {
   });
   assert.match(src, /export type PingResponse = Res<paths, "\/a", "get">;/);
   assert.match(src, /export type PostPingResponse = Res<paths, "\/b", "post">;/);
+});
+
+test("one named type per component schema, alongside the operations", () => {
+  const withSchemas = {
+    ...spec,
+    components: { schemas: { MemberOut: {}, CourseOut: {} } },
+  };
+  assert.deepEqual(modelTypes(withSchemas), ["CourseOut", "MemberOut"]);
+
+  const src = renderOperations(withSchemas);
+  assert.match(src, /export type CourseOut = components\["schemas"\]\["CourseOut"\];/);
+  assert.match(src, /export type MemberOut = components\["schemas"\]\["MemberOut"\];/);
+  assert.match(src, /import type \{ components, paths \} from "\.\/schema";/);
 });

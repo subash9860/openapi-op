@@ -121,7 +121,14 @@ try {
 type Body = Req<"/api/v1/auth/login", "post">;   // Credentials
 type Out  = Res<"/api/v1/auth/login", "post">;   // Token
 type Q    = Query<"/api/v1/members", "get">;     // { limit?, offset? }
-type Role = Schema<"RoleOut">;
+```
+
+A plain data shape — a component prop, a value just held or passed along,
+with no call site of its own — gets its own named export in the generated
+`operations.ts`, one per component schema:
+
+```ts
+import type { RoleOut } from "@/lib/operations";
 ```
 
 Where a wrapper has to restate a route's types — a Server Action most of all —
@@ -143,11 +150,13 @@ method name — `Login` is `LoginRequest` / `LoginResponse`, `Change Role` is
 keeps its verb (`PostPingResponse`). Every operation gets a pair, including
 the ones outside `--prefix` that you reach with `api()`.
 
-Naming the schema by hand is the thing to avoid: `Schema<"Register">` is a
-second, independent claim about the same route, and structural typing lets a
-wrong one through — it annotates a `Credentials` body without complaint,
-because the extra field is optional and TypeScript sees a subtype. A generated
-name cannot drift; a rename in the spec is a compile error rather than a 422.
+Naming the schema by hand is the thing to avoid: reaching for the component
+schema's own name (`Register`) where a route's `…Request`/`…Response` was
+meant is a second, independent claim about the same route, and structural
+typing lets a wrong one through — it annotates a `Credentials` body without
+complaint, because the extra field is optional and TypeScript sees a subtype.
+A generated name cannot drift; a rename in the spec is a compile error rather
+than a 422.
 
 ### Off the endpoint
 
@@ -158,8 +167,9 @@ code that is generic over one and has no single name to import:
 const wrap = <F extends typeof auth.login>(f: F) => (body: ReqOf<F>) => f({ body });
 ```
 
-`Schema<"…">` is still the right name for a plain data shape a component holds
-(`Schema<"CourseOut">[]`) — there is no endpoint there to read from.
+A plain data shape a component holds (`CourseOut[]`) still imports its named
+type from `operations.ts` — there is no endpoint there to read from, so no
+`Req`/`Res` applies, only the schema's own name.
 
 ## Conventions it assumes
 

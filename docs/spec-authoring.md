@@ -57,9 +57,9 @@ needed, but distinct summaries avoid relying on that fallback.
 
 ## 4. Use named DTOs ($ref), not inline/anonymous shapes
 
-`schema.ts` type lookups (`Schema<"MemberOut">`) and the docs table both key
-off `$ref` names. An inline object type still works but shows up unnamed in
-`docs/api.md` and can't be referenced via `Schema<...>`.
+The named type exported from `operations.ts` (`MemberOut`) and the docs table
+both key off `$ref` names. An inline object type still works but shows up
+unnamed in `docs/api.md` and gets no named export to import.
 
 ```ts
 // BAD — anonymous, unreadable in docs/api.md

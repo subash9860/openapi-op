@@ -104,11 +104,13 @@ if (
     `// Yours to edit — openapi-op writes this once and never again.
 // Binds the generic helpers to *this* project's spec, so call sites read
 // \`Req<"/api/v1/auth/login", "post">\` and not the three-parameter form.
+//
+// A plain data shape (\`CourseOut\`, \`Token\`) has its own named export in the
+// generated \`operations.ts\` — import it from there, not off \`components\`.
 
-import type { components, paths } from "./schema";
+import type { paths } from "./schema";
 import type * as t from "openapi-op";
 
-export type Schema<K extends keyof components["schemas"]> = components["schemas"][K];
 export type ApiPath = keyof paths;
 export type ApiMethod<P extends ApiPath> = t.ApiMethod<paths, P>;
 export type Req<P extends ApiPath, M extends ApiMethod<P>> = t.Req<paths, P, M>;
