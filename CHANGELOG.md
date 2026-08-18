@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.17 — 2026-08-18
+
+- fix: call args show their shape and honor optional body/query
+
 ## 0.2.16 — 2026-08-17
 
 - ci: tolerate GitHub API blips on release notes
