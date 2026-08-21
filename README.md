@@ -197,4 +197,12 @@ that decide what the generated names and types come out as.
 const tenant = await api<Tenant>("/tenant");
 ```
 
-MIT.
+## Contributing
+
+Bug reports and pull requests welcome — see
+[CONTRIBUTING.md](CONTRIBUTING.md) for the setup, how the tests work, and the
+commit message format (it picks the released version number).
+
+## License
+
+[MIT](LICENSE) © Subash KC
