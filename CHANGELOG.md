@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2 — 2026-08-21
+
+- fix: an operation type that shadows a component schema keeps its verb
+
 ## 1.0.1 — 2026-08-18
 
 - chore: update docs
