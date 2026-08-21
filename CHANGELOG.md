@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3 — 2026-08-21
+
+- ci: bump the actions group with 2 updates
+- ci: add pull request testing, issue and PR templates, dependabot
+- docs: add contributing guide and license
+
 ## 1.0.2 — 2026-08-21
 
 - fix: an operation type that shadows a component schema keeps its verb
