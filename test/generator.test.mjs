@@ -64,6 +64,21 @@ test("two summaries that collide are kept apart by the verb", () => {
   assert.match(src, /export type PostPingResponse = Res<paths, "\/b", "post">;/);
 });
 
+test("an operation base that would shadow a component schema keeps its verb", () => {
+  const src = renderOperations({
+    paths: {
+      "/api/v1/me/checkout": {
+        post: { summary: "Checkout", requestBody: {}, responses: { 200: {} } },
+      },
+    },
+    components: { schemas: { CheckoutRequest: {}, CheckoutResponse: {} } },
+  });
+  assert.match(src, /export type PostCheckoutRequest = Req<paths, "\/api\/v1\/me\/checkout", "post">;/);
+  assert.match(src, /export type PostCheckoutResponse = Res<paths, "\/api\/v1\/me\/checkout", "post">;/);
+  assert.match(src, /export type CheckoutRequest = components\["schemas"\]\["CheckoutRequest"\];/);
+  assert.match(src, /export type CheckoutResponse = components\["schemas"\]\["CheckoutResponse"\];/);
+});
+
 test("one named type per component schema, alongside the operations", () => {
   const withSchemas = {
     ...spec,

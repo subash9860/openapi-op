@@ -131,10 +131,10 @@ export function endpoints(spec, { prefix = "" } = {}) {
 const jsdoc = (text, indent) =>
   text
     ? [
-        `${indent}/**`,
-        ...text.split("\n").map((l) => `${indent} *${l ? ` ${l.trimEnd()}` : ""}`),
-        `${indent} */`,
-      ]
+      `${indent}/**`,
+      ...text.split("\n").map((l) => `${indent} *${l ? ` ${l.trimEnd()}` : ""}`),
+      `${indent} */`,
+    ]
     : [];
 
 export function renderEndpoints(spec, { prefix = "", client = "./api" } = {}) {
@@ -193,6 +193,11 @@ const pascal = (s) =>
 export function operationTypes(spec) {
   const rows = [];
   const taken = new Set();
+  // A base whose `…Request`/`…Response` would shadow a component schema of
+  // that exact name (`Checkout` the plan flow vs. `CheckoutRequest` the
+  // schema) collides just as much as two operations would — both land in
+  // `operations.ts` as an `export type` of the same name.
+  const modelNames = new Set(modelTypes(spec));
 
   for (const [path, item] of Object.entries(spec.paths ?? {})) {
     for (const verb of VERBS) {
@@ -203,7 +208,9 @@ export function operationTypes(spec) {
       // `endpoints.ts` turns into a method, so the type beside a call reads
       // like the call. Two summaries that collide keep their verb apart.
       let base = pascal(op.summary || `${verb} ${path}`);
-      if (taken.has(base)) base = pascal(`${verb} ${base}`);
+      if (taken.has(base) || modelNames.has(`${base}Request`) || modelNames.has(`${base}Response`)) {
+        base = pascal(`${verb} ${base}`);
+      }
       taken.add(base);
 
       rows.push({ base, path, verb, summary: op.summary ?? "", body: Boolean(op.requestBody) });
