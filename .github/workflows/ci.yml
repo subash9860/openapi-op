@@ -1,0 +1,33 @@
+name: ci
+
+# Pull requests only. Pushes to main are covered by release.yml, which runs the
+# same tests before it publishes — running both here would double every merge.
+on:
+  pull_request:
+
+# A new push to a PR makes the previous run pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The floor from package.json `engines`, and the version release.yml
+        # publishes with. A syntax or API that only exists in 24 would break
+        # every user on 18 without the first of these.
+        node: [18, 24]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm test

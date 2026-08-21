@@ -1,0 +1,41 @@
+name: Bug report
+description: Something generated or behaved wrongly
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what you got instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: spec
+    attributes:
+      label: The relevant part of your OpenAPI spec
+      description: >
+        The smallest snippet that triggers it — the path, its `summary`, and any
+        schema involved. This is usually the fastest route to a fix.
+      render: json
+
+  - type: textarea
+    id: output
+    attributes:
+      label: What was generated, or the error
+      description: The generated code, the type error, or the runtime error.
+      render: text
+
+  - type: input
+    id: version
+    attributes:
+      label: openapi-op version
+      placeholder: "1.0.2"
+    validations:
+      required: true
+
+  - type: input
+    id: env
+    attributes:
+      label: Node and TypeScript versions
+      placeholder: "node 22.11, typescript 5.9"

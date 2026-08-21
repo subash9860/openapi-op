@@ -1,0 +1,27 @@
+name: Feature request
+description: Suggest a new option or capability
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: >
+        What are you trying to do that you can't today? Describe the problem
+        rather than the solution — there may already be a way, or a smaller
+        change that solves the same thing.
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you had in mind
+      description: Optional. A rough API sketch is fine.
+      render: ts
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: What you're doing instead right now
+      description: Optional, but it tells us how much the gap actually costs.

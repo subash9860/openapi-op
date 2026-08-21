@@ -1,0 +1,26 @@
+version: 2
+
+# Monthly and grouped on purpose: every merge to main publishes to npm, so one
+# PR a month is one patch release a month rather than one per bumped package.
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      npm:
+        patterns: ["*"]
+    commit-message:
+      prefix: chore
+
+  # Actions pinned to a stale major are the likelier supply-chain problem here,
+  # since release.yml holds `id-token: write` for npm trusted publishing.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
