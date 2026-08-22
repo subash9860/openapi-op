@@ -44,10 +44,10 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "node --test test/*.test.mjs",
+    "test": "npm run build && node --test test/*.test.mjs",
     "release": "npm version patch && git push --follow-tags",
     "version": "node scripts/changelog.mjs && git add CHANGELOG.md",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "npm test"
   },
   "dependencies": {
     "openapi-typescript": "^7.13.0"
