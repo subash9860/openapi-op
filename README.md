@@ -67,7 +67,6 @@ export { ApiError } from "openapi-op";
 
 export const { api, op } = createClient<paths>({
   baseUrl: () => process.env.API_ORIGIN ?? "http://localhost:8000",
-  prefix: "/api/v1",
   headers: async () => ({ authorization: `Bearer ${await token()}` }),
 });
 ```
@@ -78,17 +77,19 @@ cookie) rather than known at import time.
 
 | option | |
 | --- | --- |
-| `baseUrl` | origin, without the prefix. `string` or `() => string \| Promise<string>` |
-| `prefix` | the path prefix spec keys carry that `baseUrl` does not — `/api/v1` |
+| `baseUrl` | the origin the spec's paths hang off. `string` or `() => string \| Promise<string>` |
 | `headers` | per-request headers; where the `Authorization` comes from |
 | `parseError` | defaults to reading `{ error: { code, message } }` |
+
+A generated call sends the spec key verbatim — `op("/api/v1/members", "get")`
+requests `${baseUrl}/api/v1/members` — so `baseUrl` carries no path of its
+own, and `api()` appends whatever path you hand it, unchanged.
 
 ### Next.js
 
 ```ts
 export const { api, op } = createClient<paths>({
   baseUrl: async () => process.env.API_ORIGIN ?? `https://${(await headers()).get("host")}`,
-  prefix: "/api/v1",
   headers: async () => {
     const token = (await cookies()).get("session")?.value;
     return token ? { authorization: `Bearer ${token}` } : {};
@@ -194,8 +195,11 @@ that decide what the generated names and types come out as.
 ## Escape hatch
 
 ```ts
-const tenant = await api<Tenant>("/tenant");
+const health = await api<{ status: string }>("/healthz");
 ```
+
+The path goes out exactly as written — that is how a route outside `--prefix`,
+or one the spec never mentions at all, stays reachable.
 
 ## Contributing
 
