@@ -55,6 +55,17 @@ optional), and a key the route has no use for is absent from the signature
 entirely. The argument type resolves to an object literal rather than to its
 own alias, so hovering a call lists the fields it wants.
 
+A second, optional argument is the fetch call itself — anything a
+`RequestInit` carries:
+
+```ts
+await members.list({ query: { limit: 20 } }, { next: { revalidate: 60 } });
+await auth.me(undefined, { signal: AbortSignal.timeout(2000) });
+```
+
+The verb and the body come from the spec and stay that way; an init that
+names them is ignored.
+
 ## Configure
 
 `lib/api.ts`, scaffolded on first run:
@@ -103,7 +114,13 @@ path to a browser bundle.
 ## Errors
 
 Every non-2xx throws `ApiError` with `status`, `code`, `message` and the raw
-`body`. 204 resolves to `undefined`.
+`body` — including the ones whose body is not JSON, which land on
+`res.statusText` and a `code` of `"unknown"`.
+
+A 204 resolves to `undefined`, and so does any 2xx the server labels as
+something other than JSON: a CSV or a PDF route is typed `void` by `Res`,
+because its spec response has no `application/json` to read. Fetch those
+directly when you want the bytes.
 
 ```ts
 try {
