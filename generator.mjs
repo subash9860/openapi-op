@@ -250,7 +250,11 @@ export function renderOperations(spec) {
     "// `endpoints.ts` would pull `server-only` into the browser bundle with it.",
     "",
     'import type { Req, Res } from "openapi-op";',
-    'import type { components, paths } from "./schema";',
+    // A spec with no component schemas has no named models below, and an
+    // unused `components` import is an error under `noUnusedLocals`.
+    modelTypes(spec).length
+      ? 'import type { components, paths } from "./schema";'
+      : 'import type { paths } from "./schema";',
     "",
   ];
 
