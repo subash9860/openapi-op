@@ -91,3 +91,9 @@ test("one named type per component schema, alongside the operations", () => {
   assert.match(src, /export type MemberOut = components\["schemas"\]\["MemberOut"\];/);
   assert.match(src, /import type \{ components, paths \} from "\.\/schema";/);
 });
+
+test("a spec with no component schemas does not import `components`", () => {
+  const src = renderOperations({ paths: { "/ping": { get: { summary: "Ping", responses: { 200: {} } } } } });
+  assert.match(src, /import type \{ paths \} from ".\/schema";/);
+  assert.doesNotMatch(src, /components/);
+});
