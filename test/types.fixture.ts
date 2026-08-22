@@ -88,6 +88,13 @@ search({ query: { q: "x" } });
 // @ts-expect-error missing `query`
 search({});
 
+// Fetch options ride along as a second argument: an `AbortSignal`, a Next.js
+// `next: { revalidate }`. Never required, and never mixed into the first.
+none(undefined, { cache: "no-store" });
+search({ query: { q: "x" } }, { signal: AbortSignal.timeout(1000) });
+// @ts-expect-error not a RequestInit
+list(undefined, { nope: 1 });
+
 // The tooltip shape: `Args` resolves to an object, not back to its own name.
 const shape: Args<paths, "/body", "post"> = { body: { name: "n" } };
 

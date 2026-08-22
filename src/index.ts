@@ -85,7 +85,7 @@ export function createClient<Paths>(config: ClientConfig) {
    * compile error rather than a 422 at runtime.
    */
   function op<P extends keyof Paths & string, M extends ApiMethod<Paths, P>>(path: P, method: M) {
-    return (...[args]: Call<Paths, P, M>): Promise<Res<Paths, P, M>> => {
+    return (...[args, init]: Call<Paths, P, M>): Promise<Res<Paths, P, M>> => {
       const a = args as
         | { params?: Record<string, string>; query?: Record<string, unknown>; body?: unknown }
         | undefined;
@@ -107,6 +107,7 @@ export function createClient<Paths>(config: ClientConfig) {
       }
 
       return api<Res<Paths, P, M>>(`${url}${qs.size ? `?${qs}` : ""}`, {
+        ...init,
         method: String(method).toUpperCase(),
         ...(a?.body === undefined
           ? {}

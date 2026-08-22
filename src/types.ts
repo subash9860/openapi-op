@@ -94,10 +94,15 @@ export type Args<Paths, P extends keyof Paths, M extends ApiMethod<Paths, P>> = 
 
 // A route with nothing required takes the argument optionally, so `auth.me()`
 // stays argument-free.
+//
+// The second argument is the fetch call itself — an `AbortSignal`, a Next.js
+// `next: { revalidate }`, a one-off header. It is not spec-derived and never
+// required, so it sits beside the arguments the route describes rather than
+// inside them.
 export type Call<Paths, P extends keyof Paths, M extends ApiMethod<Paths, P>> =
   Record<string, never> extends Args<Paths, P, M>
-    ? [args?: Args<Paths, P, M>]
-    : [args: Args<Paths, P, M>];
+    ? [args?: Args<Paths, P, M>, init?: RequestInit]
+    : [args: Args<Paths, P, M>, init?: RequestInit];
 
 // Everything above is keyed by a spec path. These are keyed by the endpoint
 // itself — `ReqOf<typeof auth.login>` where a hand-written signature would say
