@@ -21,13 +21,6 @@ export interface ClientConfig {
    * rather than reading it once at import time.
    */
   baseUrl: string | (() => string | Promise<string>);
-  /**
-   * Path prefix the spec keys carry that `baseUrl` does not — `/api/v1`.
-   * Stripped off the spec key and added back on the wire, so a hand-written
-   * `api("/tenant")` and a generated `op("/api/v1/tenant", "get")` hit the
-   * same URL.
-   */
-  prefix?: string;
   /** Per-request headers — where an Authorization token comes from. */
   headers?: () => Record<string, string> | Promise<Record<string, string>>;
   /** Default reads `{ error: { code, message } }`. */
@@ -40,10 +33,13 @@ const defaultParseError = (status: number, body: unknown, res: Response) => {
 };
 
 export function createClient<Paths>(config: ClientConfig) {
-  const prefix = config.prefix ?? "";
   const parseError = config.parseError ?? defaultParseError;
 
-  /** Escape hatch: any path, no types. Everything else goes through `op`. */
+  /**
+   * Escape hatch: any path, no types, appended to `baseUrl` exactly as given.
+   * That is what makes a route the spec does not describe — `/healthz`, a
+   * webhook, anything outside the generated client — reachable at all.
+   */
   async function api<T>(path: string, init?: RequestInit): Promise<T> {
     const [base, extra] = await Promise.all([
       typeof config.baseUrl === "function" ? config.baseUrl() : config.baseUrl,
@@ -63,7 +59,7 @@ export function createClient<Paths>(config: ClientConfig) {
     for (const [key, value] of Object.entries(extra)) headers.set(key, value);
     new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
 
-    const res = await fetch(`${base}${prefix}${path}`, { ...init, headers });
+    const res = await fetch(`${base}${path}`, { ...init, headers });
 
     if (!res.ok) throw parseError(res.status, await res.json().catch(() => null), res);
 
@@ -90,7 +86,10 @@ export function createClient<Paths>(config: ClientConfig) {
         | { params?: Record<string, string>; query?: Record<string, unknown>; body?: unknown }
         | undefined;
 
-      const url = (prefix && path.startsWith(prefix) ? path.slice(prefix.length) : path).replace(
+      // The spec key is the path, prefix and all — `baseUrl` is the origin it
+      // hangs off. Nothing is stripped, so what the generated call sends is
+      // what the spec says, character for character.
+      const url = path.replace(
         /\{(\w+)\}/g,
         (_, key: string) => encodeURIComponent(a!.params![key]),
       );
