@@ -117,6 +117,11 @@ function methodName(summary, group) {
 
 export function endpoints(spec, { prefix = "" } = {}) {
   const groups = new Map();
+  // Two tags that only differ in case or punctuation (`Members` / `members`)
+  // camelCase to the same export name — keyed by that normalized form so they
+  // merge into one object instead of two `export const members` declarations.
+  // The first spelling seen is what gets rendered.
+  const displayNames = new Map();
 
   for (const [path, item] of Object.entries(spec.paths ?? {})) {
     // The typed client covers the routes under the prefix; anything outside
@@ -129,12 +134,15 @@ export function endpoints(spec, { prefix = "" } = {}) {
 
       // Per operation, not per path: two verbs on one path may be tagged apart
       // (`GET /courses` reads, `POST /courses` administers).
-      const group = groupFor(operation, path, prefix);
+      const rawGroup = groupFor(operation, path, prefix);
+      const normGroup = camel(rawGroup);
+      if (!displayNames.has(normGroup)) displayNames.set(normGroup, rawGroup);
+      const group = displayNames.get(normGroup);
       const rows = groups.get(group) ?? [];
       const status = Object.keys(operation.responses).find((c) => c.startsWith("2"));
       const res = operation.responses[status]?.content?.["application/json"]?.schema?.$ref;
 
-      let key = methodName(operation.summary ?? `${verb} ${group}`, group);
+      let key = methodName(operation.summary || `${verb} ${group}`, group);
       // A summary that collides after the group word is dropped keeps its verb.
       if (rows.some((r) => r.key === key)) key = camel(`${verb} ${key}`);
 

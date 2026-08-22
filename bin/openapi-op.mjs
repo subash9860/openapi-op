@@ -123,13 +123,15 @@ export type Params<P extends ApiPath, M extends ApiMethod<P>> = t.Params<paths, 
   )
 ) written.push("api-types.ts");
 
-const groups = [...endpoints(doc, { prefix }).keys()];
+const endpointGroups = endpoints(doc, { prefix });
+const groups = [...endpointGroups.keys()];
+const endpointCount = [...endpointGroups.values()].reduce((n, rows) => n + rows.length, 0);
 
 // One group holding an untagged spec's every route means the paths all share a
 // segment that `--prefix` was supposed to eat — the flag is missing, and what
 // came out is one object named after the shared segment rather than a client.
 // It generates and typechecks cleanly, so nothing downstream catches it.
-if (groups.length === 1 && operations(doc, { prefix }).length > 1) {
+if (groups.length === 1 && endpointCount > 1) {
   console.warn(
     `warning: every route landed in \`${groups[0]}\`. Pass --prefix (e.g. --prefix /${groups[0]}) ` +
       "so the segment it shares becomes the base, not the group — or tag the operations in the spec.",
