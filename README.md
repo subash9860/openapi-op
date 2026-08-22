@@ -12,6 +12,8 @@ runtime is one `createClient()`.
 npm i openapi-op
 ```
 
+ESM only, Node 18+. TypeScript 5.x, alongside `openapi-typescript`.
+
 ## Generate
 
 ```bash
