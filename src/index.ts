@@ -54,14 +54,16 @@ export function createClient<Paths>(config: ClientConfig) {
     // the boundary itself, and a hardcoded json header here would break it.
     const isFormData = init?.body instanceof FormData;
 
-    const res = await fetch(`${base}${prefix}${path}`, {
-      ...init,
-      headers: {
-        ...(isFormData ? {} : { "content-type": "application/json" }),
-        ...extra,
-        ...init?.headers,
-      },
-    });
+    // Built through `Headers` rather than object spread: `init.headers` is a
+    // `HeadersInit`, and spreading a `Headers` instance — or the entry-array
+    // form — yields `{}`, so the caller's headers went out missing with
+    // nothing to show for it. Precedence is unchanged: content-type, then the
+    // client's `headers()`, then whatever the call passed.
+    const headers = new Headers(isFormData ? undefined : { "content-type": "application/json" });
+    for (const [key, value] of Object.entries(extra)) headers.set(key, value);
+    new Headers(init?.headers).forEach((value, key) => headers.set(key, value));
+
+    const res = await fetch(`${base}${prefix}${path}`, { ...init, headers });
 
     if (!res.ok) throw parseError(res.status, await res.json().catch(() => null), res);
     return res.status === 204 ? (undefined as T) : res.json();
