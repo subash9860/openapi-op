@@ -27,6 +27,15 @@ const groupOf = (path, prefix) =>
     .split("/")
     .filter(Boolean)[0] ?? path;
 
+// Which object an operation hangs off. The spec's own tag wins, because the URL
+// is a routing detail and the tag is the intent: `List Permissions` belongs with
+// `roles` though it lives at `/permissions`, and `/admin/courses` is
+// `courses:admin`, not a bucket called `admin` shared with every other admin
+// route. Untagged, the path stands in — which is the whole answer for a spec
+// that never tags, and keeps `/healthz` under `healthz`.
+const groupFor = (operation, path, prefix) =>
+  operation.tags?.[0] || groupOf(path, prefix);
+
 export function operations(spec, { prefix = "" } = {}) {
   const rows = [];
   for (const [path, item] of Object.entries(spec.paths ?? {})) {
@@ -42,7 +51,7 @@ export function operations(spec, { prefix = "" } = {}) {
         .join(", ");
 
       rows.push({
-        group: groupOf(path, prefix),
+        group: groupFor(op, path, prefix),
         path,
         verb: verb.toUpperCase(),
         query: query || "—",
@@ -89,35 +98,51 @@ const camel = (s) =>
     .map((w, i) => (i ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w.toLowerCase()))
     .join("");
 
+const singular = (word) => word.toLowerCase().replace(/s$/, "");
+
 // `List Members` in the `members` group is `members.list`, not
-// `members.listMembers` — the group already said it. Only the trailing word
-// goes, and only when it *is* the group, so `changeRole` under members keeps
-// its noun.
+// `members.listMembers` — the group already said it. Any word the group name
+// carries is dropped off either end, so `Admin List Courses` under
+// `courses:admin` is `coursesAdmin.list` and `List Question Types` under
+// `question-types:admin` is `list`. Only the ends, so `changeRole` under
+// `members` keeps its noun, and never the last word standing — a summary that
+// is nothing but its group (`Checkout` under `checkout`) keeps it.
 function methodName(summary, group) {
+  const said = new Set(group.split(/[^A-Za-z0-9]+/).filter(Boolean).map(singular));
   const words = summary.trim().split(/\s+/);
-  const last = words.at(-1).toLowerCase().replace(/s$/, "");
-  if (words.length > 1 && last === group.toLowerCase().replace(/s$/, "")) words.pop();
+  while (words.length > 1 && said.has(singular(words.at(-1)))) words.pop();
+  while (words.length > 1 && said.has(singular(words[0]))) words.shift();
   return camel(words.join(" "));
 }
 
 export function endpoints(spec, { prefix = "" } = {}) {
   const groups = new Map();
+  // Two tags that only differ in case or punctuation (`Members` / `members`)
+  // camelCase to the same export name — keyed by that normalized form so they
+  // merge into one object instead of two `export const members` declarations.
+  // The first spelling seen is what gets rendered.
+  const displayNames = new Map();
 
   for (const [path, item] of Object.entries(spec.paths ?? {})) {
     // The typed client covers the routes under the prefix; anything outside
     // it (/healthz) is left to a direct `api()` call.
     if (!path.startsWith(`${prefix}/`)) continue;
-    const group = groupOf(path, prefix);
 
     for (const verb of VERBS) {
       const operation = item[verb];
       if (!operation) continue;
 
+      // Per operation, not per path: two verbs on one path may be tagged apart
+      // (`GET /courses` reads, `POST /courses` administers).
+      const rawGroup = groupFor(operation, path, prefix);
+      const normGroup = camel(rawGroup);
+      if (!displayNames.has(normGroup)) displayNames.set(normGroup, rawGroup);
+      const group = displayNames.get(normGroup);
       const rows = groups.get(group) ?? [];
       const status = Object.keys(operation.responses).find((c) => c.startsWith("2"));
       const res = operation.responses[status]?.content?.["application/json"]?.schema?.$ref;
 
-      let key = methodName(operation.summary ?? `${verb} ${group}`, group);
+      let key = methodName(operation.summary || `${verb} ${group}`, group);
       // A summary that collides after the group word is dropped keeps its verb.
       if (rows.some((r) => r.key === key)) key = camel(`${verb} ${key}`);
 
@@ -160,8 +185,10 @@ export function renderEndpoints(spec, { prefix = "", client = "./api" } = {}) {
 
   for (const [group, rows] of groups) {
     // A paginated op is hoisted to a const first: the `Items` sibling refers to
-    // it, and a reference to the object being defined is circular.
-    const hoisted = (row) => camel(`${group} ${row.key}`);
+    // it, and a reference to the object being defined is circular. The key is
+    // already camelCase, so it is capitalized rather than re-cased —
+    // `rolesListPermissions`, not `rolesListpermissions`.
+    const hoisted = (row) => camel(group) + row.key[0].toUpperCase() + row.key.slice(1);
     for (const row of rows.filter((r) => r.paginated)) {
       out.push(`const ${hoisted(row)} = op("${row.path}", "${row.verb}");`);
     }
