@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.0.0 — 2026-08-22
+
+- fix: pin typescript back to 5.x
+- docs: add a 1.x upgrade note, and fix a comment the prefix split left stale
+- docs: state the runtime and module format up front
+- fix: don't import `components` when the spec declares no schemas
+- docs: document the call's fetch options and the non-JSON response
+- test: cover the runtime client
+- feat!: op() sends the spec path verbatim, api() the path it was given
+- feat: pass fetch options through a generated call
+- fix: group the generated docs by the same rule the client uses
+- fix: a non-JSON 2xx no longer throws a SyntaxError
+- fix: stop dropping headers passed as a Headers instance
+- fix: send an array query param as a repeated key
+- ci: typecheck before the release bump, not after it
+- ci: keep dependabot off typescript majors
+- chore: bump typescript from 5.9.3 to 7.0.2 in the npm group
+
 ## 1.0.3 — 2026-08-21
 
 - ci: bump the actions group with 2 updates

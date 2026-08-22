@@ -1,6 +1,6 @@
 {
   "name": "openapi-op",
-  "version": "1.0.3",
+  "version": "2.0.0",
   "description": "Typed API client generated from an OpenAPI spec — one op() per operation, no runtime validation, no codegen'd fetch soup.",
   "keywords": [
     "openapi",
