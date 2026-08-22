@@ -25,7 +25,7 @@ Writes, every run:
 | file | what |
 | --- | --- |
 | `lib/schema.ts` | `openapi-typescript` output, verbatim |
-| `lib/endpoints.ts` | the callable client, grouped by the first path segment |
+| `lib/endpoints.ts` | the callable client, grouped by the spec's tags |
 | `lib/operations.ts` | `LoginRequest` / `LoginResponse`, one pair per operation |
 | `docs/api.md` | every path, verb, request and response (`--no-docs` to skip) |
 
@@ -195,14 +195,25 @@ type from `operations.ts` — there is no endpoint there to read from, so no
 
 Generated names come from the spec, so they are only as good as it is:
 
-- **Groups** are the first path segment after the prefix — `/api/v1/members/*`
-  becomes `export const members`.
-- **Method names** come from `summary`, minus the group word: `List Members` in
-  `members` is `members.list`, but `Change Role` stays `changeRole`. A
-  collision keeps its verb.
+- **Groups** are the operation's first `tag` — `tags: ["members"]` becomes
+  `export const members`, and a namespaced tag is still one identifier
+  (`courses:admin` → `coursesAdmin`). The tag beats the URL on purpose: `List
+  Permissions` belongs with `roles` though it lives at `/permissions`, and
+  `/admin/courses` is `courses:admin` rather than sharing one `admin` bucket
+  with every other admin route. Two verbs on one path may be tagged apart.
+  Untagged, the first path segment after the prefix stands in — so a spec that
+  never tags groups exactly as before.
+- **Method names** come from `summary`, minus whatever the group already says:
+  `List Members` in `members` is `members.list`, and `Admin List Courses` in
+  `courses:admin` is `coursesAdmin.list`. Only whole words, only off either
+  end, and never the last one standing — so `Change Role` stays `changeRole`
+  and `Checkout` in `checkout` stays `checkout.checkout`. A collision keeps its
+  verb.
 - **Pagination**: a response named `Paginated_X_` also gets a `…Items` sibling
   returning the rows.
 - Routes outside `--prefix` (`/healthz`) are skipped — call those with `api()`.
+  That is all `--prefix` does now: it decides what the typed client covers, not
+  what anything is called.
 
 `api(path, init)` is the untyped escape hatch for anything the spec does not
 describe.
@@ -219,6 +230,24 @@ const health = await api<{ status: string }>("/healthz");
 
 The path goes out exactly as written — that is how a route outside `--prefix`,
 or one the spec never mentions at all, stays reachable.
+
+## Upgrading from 2.x
+
+Groups come from the spec's tags now, so a tagged spec regroups on the next
+`npm run codegen`. Nothing about the runtime changed — the calls are the same
+calls, reached through a different object.
+
+```diff
+-import { admin } from "@/lib/endpoints";
+-await admin.createCourse({ body });
++import { coursesAdmin } from "@/lib/endpoints";
++await coursesAdmin.create({ body });
+```
+
+Regenerate, then let `tsc` list the call sites: every one is a renamed import
+or a renamed method, and there is no silent change — a group that moved cannot
+still resolve. An untagged spec is unaffected, and so is `--prefix`, which now
+only decides which routes the typed client covers.
 
 ## Upgrading from 1.x
 
