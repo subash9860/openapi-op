@@ -220,6 +220,30 @@ const health = await api<{ status: string }>("/healthz");
 The path goes out exactly as written — that is how a route outside `--prefix`,
 or one the spec never mentions at all, stays reachable.
 
+## Upgrading from 1.x
+
+`createClient()` no longer takes `prefix`, and `api()` no longer adds one.
+
+```diff
+ export const { api, op } = createClient<paths>({
+   baseUrl: () => process.env.API_ORIGIN ?? "http://localhost:8000",
+-  prefix: "/api/v1",
+ });
+```
+
+Generated calls are unaffected — `op()` sends the spec key, which already
+carries the prefix. What changes is `api()`: it now sends the path you give
+it, verbatim. Pass the whole path there.
+
+```diff
+-await api<Tenant>("/tenant");        // was /api/v1/tenant
++await api<Tenant>("/api/v1/tenant");
++await api<Health>("/healthz");       // now reachable at all
+```
+
+Regenerating does not touch `lib/api.ts` — it is scaffolded once — so that
+one edit is by hand. TypeScript flags the leftover `prefix` for you.
+
 ## Contributing
 
 Bug reports and pull requests welcome — see

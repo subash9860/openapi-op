@@ -104,8 +104,8 @@ export function endpoints(spec, { prefix = "" } = {}) {
   const groups = new Map();
 
   for (const [path, item] of Object.entries(spec.paths ?? {})) {
-    // The generated client only speaks to routes under the prefix `api()`
-    // adds — anything outside it (/healthz) is left to a direct call.
+    // The typed client covers the routes under the prefix; anything outside
+    // it (/healthz) is left to a direct `api()` call.
     if (!path.startsWith(`${prefix}/`)) continue;
     const group = groupOf(path, prefix);
 
