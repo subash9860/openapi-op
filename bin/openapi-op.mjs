@@ -63,7 +63,7 @@ await writeFile(path.join(out, "endpoints.ts"), renderEndpoints(doc, { prefix, c
 await writeFile(path.join(out, "operations.ts"), renderOperations(doc));
 if (docs) {
   await mkdir(path.dirname(docs), { recursive: true });
-  await writeFile(docs, renderDocs(doc));
+  await writeFile(docs, renderDocs(doc, { prefix }));
 }
 
 // --- scaffolds: written once, then left alone ---
