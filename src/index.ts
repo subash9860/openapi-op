@@ -84,9 +84,15 @@ export function createClient<Paths>(config: ClientConfig) {
         (_, key: string) => encodeURIComponent(a!.params![key]),
       );
 
+      // An array is a repeated key and not `a,b`: `?tags=a&tags=b` is what a
+      // `List[str]` on the other end reads back, and `String(["a","b"])` is a
+      // single value the server takes literally. `null` is dropped like
+      // `undefined` — an omitted optional, not the four characters "null".
       const qs = new URLSearchParams();
       for (const [key, value] of Object.entries(a?.query ?? {})) {
-        if (value !== undefined) qs.set(key, String(value));
+        for (const v of Array.isArray(value) ? value : [value]) {
+          if (v !== undefined && v !== null) qs.append(key, String(v));
+        }
       }
 
       return api<Res<Paths, P, M>>(`${url}${qs.size ? `?${qs}` : ""}`, {
