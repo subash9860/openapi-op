@@ -66,7 +66,16 @@ export function createClient<Paths>(config: ClientConfig) {
     const res = await fetch(`${base}${prefix}${path}`, { ...init, headers });
 
     if (!res.ok) throw parseError(res.status, await res.json().catch(() => null), res);
-    return res.status === 204 ? (undefined as T) : res.json();
+
+    // 204, and anything the server labelled as not JSON. A CSV or a PDF route
+    // typed `void` by `Res` still ran `res.json()`, which threw a raw
+    // SyntaxError straight past the caller's `ApiError` handling. A response
+    // with no content-type at all is still read as JSON — that is what the
+    // spec said the route returns.
+    const type = res.headers.get("content-type");
+    return res.status === 204 || (type && !type.includes("json"))
+      ? (undefined as T)
+      : res.json();
   }
 
   /**
