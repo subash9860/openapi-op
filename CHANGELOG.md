@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.0 — 2026-08-22
+
+- feat!: group operations by spec tag, not path segment
+
 ## 2.0.0 — 2026-08-22
 
 - fix: pin typescript back to 5.x
