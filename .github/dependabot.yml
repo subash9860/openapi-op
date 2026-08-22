@@ -12,6 +12,10 @@ updates:
         patterns: ["*"]
     commit-message:
       prefix: chore
+    # openapi-typescript peers on typescript ^5.x; a TS 7 bump fails npm ci.
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
 
   # Actions pinned to a stale major are the likelier supply-chain problem here,
   # since release.yml holds `id-token: write` for npm trusted publishing.
